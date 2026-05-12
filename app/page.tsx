@@ -184,10 +184,10 @@ export default function Page() {
                     {useManualPrice ? "Manual price" : "Live price"}
                   </div>
                   <div className="font-semibold text-yellow-800 dark:text-yellow-300">
-                    24k — {formatMoney(effectivePrice)}/g
+                    24k — {formatMoney(effectivePrice * 1000)}/kg
                   </div>
                   <div className="text-xs text-yellow-700/80 dark:text-yellow-400/80">
-                    22k — {formatMoney(effectivePrice * (22 / 24))}/g
+                    22k — {formatMoney(effectivePrice * (22 / 24) * 1000)}/kg
                   </div>
                   {priceLastUpdated && !useManualPrice && (
                     <div className="text-xs text-muted-foreground">
@@ -360,18 +360,18 @@ export default function Page() {
                   <div key={purchase.id} className="rounded-2xl border p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5 font-medium">
+                        <div className="flex items-center gap-1.5 font-medium">
                           {purchase.grams.toFixed(3)} g
                           <span className="rounded-md bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
                             {purchase.karat ?? 22}k
                           </span>
-                          <span className="text-xs font-normal text-muted-foreground">
-                            {new Date(purchase.date + "T00:00:00").toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(purchase.date + "T00:00:00").toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
                         </div>
                         {purchase.note && (
                           <div className="mt-0.5 truncate text-xs text-muted-foreground">
