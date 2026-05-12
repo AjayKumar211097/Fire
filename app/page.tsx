@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils"
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = "fire-gold-portfolio"
+const KARATS = [18, 20, 22, 24] as const
+type Karat = (typeof KARATS)[number]
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +18,7 @@ type GoldPurchase = {
   date: string
   grams: number
   pricePerGram: number
+  karat: Karat
   note: string
 }
 
@@ -45,10 +48,15 @@ async function fetchGoldPriceInr(): Promise<{ pricePerGram: number; usdToInr: nu
   return data
 }
 
-function calcPortfolioSummary(purchases: GoldPurchase[], currentPricePerGram: number) {
+// price24kPerGram is the live 24k price from the API.
+// Current value for each purchase is adjusted by karat purity (e.g. 22k = 22/24 of 24k price).
+function calcPortfolioSummary(purchases: GoldPurchase[], price24kPerGram: number) {
   const totalGrams = purchases.reduce((s, p) => s + p.grams, 0)
   const totalPaid = purchases.reduce((s, p) => s + p.grams * p.pricePerGram, 0)
-  const currentValue = totalGrams * currentPricePerGram
+  const currentValue = purchases.reduce(
+    (s, p) => s + p.grams * price24kPerGram * (p.karat / 24),
+    0,
+  )
   const avgPurchasePrice = totalGrams > 0 ? totalPaid / totalGrams : 0
   const profitLoss = currentValue - totalPaid
   const profitLossPct = totalPaid > 0 ? (profitLoss / totalPaid) * 100 : 0
@@ -72,6 +80,7 @@ export default function Page() {
   const [formDate, setFormDate] = useState(() => new Date().toISOString().split("T")[0])
   const [formGrams, setFormGrams] = useState("")
   const [formPrice, setFormPrice] = useState("")
+  const [formKarat, setFormKarat] = useState<Karat>(22)
   const [formNote, setFormNote] = useState("")
 
   // Load from localStorage
@@ -139,6 +148,7 @@ export default function Page() {
         date: formDate,
         grams: g,
         pricePerGram: p,
+        karat: formKarat,
         note: formNote.trim(),
       },
       ...prev,
@@ -171,7 +181,7 @@ export default function Page() {
               {effectivePrice !== null ? (
                 <>
                   <div className="text-xs text-muted-foreground">
-                    {useManualPrice ? "Manual price" : "Live price"}
+                    {useManualPrice ? "Manual price (24k)" : "Live 24k price"}
                   </div>
                   <div className="font-semibold text-yellow-800 dark:text-yellow-300">
                     {formatMoney(effectivePrice)}/g
@@ -278,6 +288,26 @@ export default function Page() {
               />
             </div>
             <div className="flex flex-col gap-1">
+              <label className="text-xs text-muted-foreground">Karat</label>
+              <div className="flex gap-1">
+                {KARATS.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setFormKarat(k)}
+                    className={cn(
+                      "h-8 flex-1 rounded-lg border text-xs font-medium transition-colors",
+                      formKarat === k
+                        ? "border-yellow-500 bg-yellow-100 text-yellow-800 dark:border-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-300"
+                        : "border-input bg-transparent text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    {k}k
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
               <label className="text-xs text-muted-foreground">Price / gram (INR)</label>
               <Input
                 type="number"
@@ -287,7 +317,7 @@ export default function Page() {
                 onChange={(e) => setFormPrice(e.target.value)}
               />
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 col-span-2 sm:col-span-4">
               <label className="text-xs text-muted-foreground">Note (optional)</label>
               <Input
                 placeholder="e.g. Local jeweller"
@@ -316,8 +346,11 @@ export default function Page() {
             <div className="flex flex-col gap-2">
               {purchases.map((purchase) => {
                 const cost = purchase.grams * purchase.pricePerGram
+                const karat = purchase.karat ?? 22
                 const currentVal =
-                  effectivePrice !== null ? purchase.grams * effectivePrice : null
+                  effectivePrice !== null
+                    ? purchase.grams * effectivePrice * (karat / 24)
+                    : null
                 const pl = currentVal !== null ? currentVal - cost : null
                 const plPct = pl !== null && cost > 0 ? (pl / cost) * 100 : null
 
@@ -325,9 +358,12 @@ export default function Page() {
                   <div key={purchase.id} className="rounded-2xl border p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="font-medium">
+                        <div className="flex flex-wrap items-center gap-1.5 font-medium">
                           {purchase.grams.toFixed(3)} g
-                          <span className="ml-2 text-xs font-normal text-muted-foreground">
+                          <span className="rounded-md bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+                            {purchase.karat ?? 22}k
+                          </span>
+                          <span className="text-xs font-normal text-muted-foreground">
                             {new Date(purchase.date + "T00:00:00").toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "short",
