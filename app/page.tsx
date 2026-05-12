@@ -7,10 +7,7 @@ import { cn } from "@/lib/utils"
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const TROY_OZ_TO_GRAMS = 31.1034768
 const STORAGE_KEY = "fire-gold-portfolio"
-const GOLD_API_URL = "https://api.gold-api.com/price/XAU"
-const FX_API_URL = "https://api.frankfurter.app/latest?from=USD&to=INR"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,47 +34,15 @@ function formatPercent(value: number): string {
   return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`
 }
 
-function normalizeGoldApiResponse(data: unknown): number | null {
-  if (!data || typeof data !== "object") return null
-  const d = data as Record<string, unknown>
-
-  // Try per-gram fields first (no conversion needed)
-  for (const field of ["price_gram_24k", "price_gram_24K", "price_gram", "gram_price"]) {
-    const v = Number(d[field])
-    if (Number.isFinite(v) && v > 0) return v
-  }
-
-  // Try per-troy-oz fields and convert to per gram
-  for (const field of ["price", "ask", "bid", "rate"]) {
-    const v = Number(d[field])
-    if (Number.isFinite(v) && v > 0) return v / TROY_OZ_TO_GRAMS
-  }
-
-  return null
-}
-
-async function fetchUsdToInr(): Promise<number> {
-  const response = await fetch(FX_API_URL, { cache: "no-store" })
-  if (!response.ok) throw new Error(`FX HTTP ${response.status}`)
-  const data = (await response.json()) as { rates?: { INR?: number } }
-  const rate = data?.rates?.INR
-  if (!rate || !Number.isFinite(rate) || rate <= 0) throw new Error("Could not parse INR rate")
-  return rate
-}
-
 async function fetchGoldPriceInr(): Promise<{ pricePerGram: number; usdToInr: number }> {
-  const [usdPerGram, usdToInr] = await Promise.all([
-    (async () => {
-      const response = await fetch(GOLD_API_URL, { cache: "no-store" })
-      if (!response.ok) throw new Error(`Gold API HTTP ${response.status}`)
-      const data: unknown = await response.json()
-      const price = normalizeGoldApiResponse(data)
-      if (price === null) throw new Error("Unrecognised gold API response format")
-      return price
-    })(),
-    fetchUsdToInr(),
-  ])
-  return { pricePerGram: usdPerGram * usdToInr, usdToInr }
+  const response = await fetch("/api/gold-price")
+  const data = (await response.json()) as
+    | { pricePerGram: number; usdToInr: number }
+    | { error: string }
+  if (!response.ok || "error" in data) {
+    throw new Error("error" in data ? data.error : `HTTP ${response.status}`)
+  }
+  return data
 }
 
 function calcPortfolioSummary(purchases: GoldPurchase[], currentPricePerGram: number) {
