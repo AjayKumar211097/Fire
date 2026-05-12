@@ -181,15 +181,17 @@ export default function Page() {
               {effectivePrice !== null ? (
                 <>
                   <div className="text-xs text-muted-foreground">
-                    {useManualPrice ? "Manual price (24k)" : "Live 24k price"}
+                    {useManualPrice ? "Manual price" : "Live price"}
                   </div>
                   <div className="font-semibold text-yellow-800 dark:text-yellow-300">
-                    {formatMoney(effectivePrice)}/g
+                    24k — {formatMoney(effectivePrice)}/g
+                  </div>
+                  <div className="text-xs text-yellow-700/80 dark:text-yellow-400/80">
+                    22k — {formatMoney(effectivePrice * (22 / 24))}/g
                   </div>
                   {priceLastUpdated && !useManualPrice && (
                     <div className="text-xs text-muted-foreground">
                       Updated {priceLastUpdated}
-                      {usdToInr && ` · $1 = ₹${usdToInr.toFixed(2)}`}
                     </div>
                   )}
                 </>
