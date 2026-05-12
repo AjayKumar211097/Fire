@@ -24,9 +24,9 @@ type GoldPurchase = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatMoney(value: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value)
@@ -218,7 +218,7 @@ export default function Page() {
               <Input
                 type="number"
                 inputMode="decimal"
-                placeholder="Enter current price per gram (USD)"
+                placeholder="Enter current price per gram (INR)"
                 value={manualPrice}
                 onChange={(e) => {
                   setManualPrice(e.target.value)
@@ -292,11 +292,11 @@ export default function Page() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-muted-foreground">Price / gram (USD)</label>
+              <label className="text-xs text-muted-foreground">Price / gram (INR)</label>
               <Input
                 type="number"
                 inputMode="decimal"
-                placeholder="e.g. 95.50"
+                placeholder="e.g. 8500"
                 value={formPrice}
                 onChange={(e) => setFormPrice(e.target.value)}
               />
