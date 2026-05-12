@@ -270,7 +270,7 @@ export default function Page() {
         {/* Add purchase form */}
         <section className="rounded-3xl border bg-card p-4 shadow-sm">
           <h2 className="mb-3 text-sm font-medium">Add purchase</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-muted-foreground">Date</label>
               <Input
