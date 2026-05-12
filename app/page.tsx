@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 const TROY_OZ_TO_GRAMS = 31.1034768
 const STORAGE_KEY = "fire-gold-portfolio"
 const GOLD_API_URL = "https://api.gold-api.com/price/XAU"
+const FX_API_URL = "https://api.frankfurter.app/latest?from=USD&to=INR"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,13 +56,28 @@ function normalizeGoldApiResponse(data: unknown): number | null {
   return null
 }
 
-async function fetchGoldPrice(): Promise<number> {
-  const response = await fetch(GOLD_API_URL, { cache: "no-store" })
-  if (!response.ok) throw new Error(`HTTP ${response.status}`)
-  const data: unknown = await response.json()
-  const price = normalizeGoldApiResponse(data)
-  if (price === null) throw new Error("Unrecognised API response format")
-  return price
+async function fetchUsdToInr(): Promise<number> {
+  const response = await fetch(FX_API_URL, { cache: "no-store" })
+  if (!response.ok) throw new Error(`FX HTTP ${response.status}`)
+  const data = (await response.json()) as { rates?: { INR?: number } }
+  const rate = data?.rates?.INR
+  if (!rate || !Number.isFinite(rate) || rate <= 0) throw new Error("Could not parse INR rate")
+  return rate
+}
+
+async function fetchGoldPriceInr(): Promise<{ pricePerGram: number; usdToInr: number }> {
+  const [usdPerGram, usdToInr] = await Promise.all([
+    (async () => {
+      const response = await fetch(GOLD_API_URL, { cache: "no-store" })
+      if (!response.ok) throw new Error(`Gold API HTTP ${response.status}`)
+      const data: unknown = await response.json()
+      const price = normalizeGoldApiResponse(data)
+      if (price === null) throw new Error("Unrecognised gold API response format")
+      return price
+    })(),
+    fetchUsdToInr(),
+  ])
+  return { pricePerGram: usdPerGram * usdToInr, usdToInr }
 }
 
 function calcPortfolioSummary(purchases: GoldPurchase[], currentPricePerGram: number) {
@@ -81,6 +97,7 @@ export default function Page() {
   const [purchases, setPurchases] = useState<GoldPurchase[]>([])
 
   const [pricePerGram, setPricePerGram] = useState<number | null>(null)
+  const [usdToInr, setUsdToInr] = useState<number | null>(null)
   const [priceLastUpdated, setPriceLastUpdated] = useState<string | null>(null)
   const [priceError, setPriceError] = useState<string | null>(null)
   const [priceLoading, setPriceLoading] = useState(false)
@@ -119,8 +136,9 @@ export default function Page() {
     setPriceLoading(true)
     setPriceError(null)
     try {
-      const price = await fetchGoldPrice()
+      const { pricePerGram: price, usdToInr: rate } = await fetchGoldPriceInr()
       setPricePerGram(price)
+      setUsdToInr(rate)
       setPriceLastUpdated(new Date().toLocaleTimeString())
       setUseManualPrice(false)
     } catch (err) {
@@ -194,7 +212,10 @@ export default function Page() {
                     {formatMoney(effectivePrice)}/g
                   </div>
                   {priceLastUpdated && !useManualPrice && (
-                    <div className="text-xs text-muted-foreground">Updated {priceLastUpdated}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Updated {priceLastUpdated}
+                      {usdToInr && ` · $1 = ₹${usdToInr.toFixed(2)}`}
+                    </div>
                   )}
                 </>
               ) : (
