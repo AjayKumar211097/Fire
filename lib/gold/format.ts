@@ -29,8 +29,22 @@ export function formatInrPerGram(value: number): string {
   return `${inr.format(value)}/g`
 }
 
+// Rates are stored per gram, the unit the source publishes. Everything on screen is shown
+// per 10 g, which is how gold is actually quoted and bought here.
+export const GRAMS_PER_DISPLAY_UNIT = 10
+
+/** Takes a per-gram value, renders the per-10g price. */
+export function formatInrPer10g(perGram: number): string {
+  return inr.format(perGram * GRAMS_PER_DISPLAY_UNIT)
+}
+
 export function formatSignedInr(value: number): string {
   return `${value >= 0 ? "+" : "−"}${inr.format(Math.abs(value))}`
+}
+
+/** Takes a per-gram delta, renders the signed per-10g change. */
+export function formatSignedInrPer10g(perGramDelta: number): string {
+  return formatSignedInr(perGramDelta * GRAMS_PER_DISPLAY_UNIT)
 }
 
 export function formatPercent(value: number): string {

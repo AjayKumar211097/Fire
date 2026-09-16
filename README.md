@@ -3,6 +3,9 @@
 A single-purpose PWA that shows the **retail gold rate in Hyderabad** and how it has moved:
 the last 5 days, the last 5 months, and the last 5 years. Installable on a phone.
 
+Prices are shown **per 10 g** for both 22K and 24K. (They're stored per gram, the unit the
+source publishes, and converted only when rendered.)
+
 It does one thing. There is no portfolio, no purchase tracking, no login, no database.
 
 ## How it works
@@ -16,6 +19,11 @@ Because no free API serves Hyderabad *retail* rates historically, the app builds
 series one day at a time. Monthly and yearly figures are averaged from those daily
 readings — and until enough have accumulated, they fall back to researched estimates in
 `data/gold-seed.json`, which the UI labels `est.`
+
+The series starts with 10 days backfilled from GoodReturns' Hyderabad table, which quotes
+the same city-wide rate (it agrees with Kalyan to the rupee on the overlapping days). No
+source publishes Hyderabad daily history beyond about 10 days, so everything before that
+is monthly/yearly estimates.
 
 ```
 data/gold-daily.json   measured readings, one per day, written by the daily job

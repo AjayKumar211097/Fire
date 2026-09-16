@@ -51,6 +51,11 @@ when they cover ≥ `COVERAGE_THRESHOLD` (0.5) of the days elapsed in that perio
 it falls back to the seeded estimate. Measured and seeded values are never blended, and each
 row carries `basis` + `sampleCount` so the UI can mark estimates as `est.`
 
+**Units**: rates are stored **per gram**, the unit the source publishes, and displayed
+**per 10 g**, which is how gold is quoted and bought here. The conversion happens only at
+the display boundary — `formatInrPer10g` / `formatSignedInrPer10g` in `lib/gold/format.ts`.
+Never multiply before the formatter, or percentages and averages drift.
+
 Two things to watch when touching aggregation:
 - Period lists are built with `count + 1` entries so the oldest *visible* row still has a
   change to show, then the extra is dropped (`trimAndReverse`).

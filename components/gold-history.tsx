@@ -4,10 +4,10 @@ import { useEffect, useState } from "react"
 import { SegmentedControl } from "@/components/segmented-control"
 import {
   formatFullDate,
-  formatInr,
+  formatInrPer10g,
   formatInrPerGram,
   formatPercent,
-  formatSignedInr,
+  formatSignedInrPer10g,
 } from "@/lib/gold/format"
 import type { Karat, PricePoint, TabKey } from "@/lib/gold/types"
 import { cn } from "@/lib/utils"
@@ -75,7 +75,7 @@ export function GoldHistory({
         ) : (
           <>
             <p className="mt-1.5 font-mono text-3xl font-semibold tracking-tight tabular-nums">
-              {formatInrPerGram(price)}
+              {formatInrPer10g(price)}
             </p>
 
             {delta !== null && deltaPct !== null && (
@@ -87,14 +87,13 @@ export function GoldHistory({
                     : "text-destructive"
                 )}
               >
-                {formatSignedInr(delta)} ({formatPercent(deltaPct)}) today
+                {formatSignedInrPer10g(delta)} ({formatPercent(deltaPct)}) today
               </p>
             )}
 
             <p className="mt-2.5 text-xs text-muted-foreground">
-              {karat}K ·{" "}
-              <span className="tabular-nums">{formatInr(price * 10)}</span> per
-              10g
+              {karat}K · per 10 g ·{" "}
+              <span className="tabular-nums">{formatInrPerGram(price)}</span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {source} · {today && formatFullDate(today.date)}
@@ -124,52 +123,59 @@ export function GoldHistory({
           morning.
         </p>
       ) : (
-        <ul
-          role="tabpanel"
-          aria-label={TAB_OPTIONS.find((t) => t.value === tab)?.label}
-          className="divide-y overflow-hidden rounded-2xl border bg-card"
-        >
-          {visible.map((row) => (
-            <li
-              key={row.key}
-              className="flex items-center justify-between gap-3 px-3.5 py-3"
-            >
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium">{row.label}</div>
-                {row.sublabel && (
-                  <div className="truncate text-xs text-muted-foreground">
-                    {row.basis === "seed" ? (
-                      <span className="rounded bg-muted px-1.5 py-0.5">
-                        est.
-                      </span>
-                    ) : (
-                      row.sublabel
-                    )}
+        <>
+          <p className="-mb-2 px-1 text-right text-xs text-muted-foreground">
+            {karat}K · per 10 g
+          </p>
+          <ul
+            role="tabpanel"
+            aria-label={TAB_OPTIONS.find((t) => t.value === tab)?.label}
+            className="divide-y overflow-hidden rounded-2xl border bg-card"
+          >
+            {visible.map((row) => (
+              <li
+                key={row.key}
+                className="flex items-center justify-between gap-3 px-3.5 py-3"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium">
+                    {row.label}
                   </div>
-                )}
-              </div>
-
-              <div className="shrink-0 text-right">
-                <div className="font-mono text-sm font-semibold tabular-nums">
-                  {formatInrPerGram(row.value)}
+                  {row.sublabel && (
+                    <div className="truncate text-xs text-muted-foreground">
+                      {row.basis === "seed" ? (
+                        <span className="rounded bg-muted px-1.5 py-0.5">
+                          est.
+                        </span>
+                      ) : (
+                        row.sublabel
+                      )}
+                    </div>
+                  )}
                 </div>
-                {row.changeAbs !== null && row.changePct !== null && (
-                  <div
-                    className={cn(
-                      "font-mono text-xs tabular-nums",
-                      row.changeAbs >= 0
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-destructive"
-                    )}
-                  >
-                    {formatSignedInr(row.changeAbs)}{" "}
-                    {formatPercent(row.changePct)}
+
+                <div className="shrink-0 text-right">
+                  <div className="font-mono text-sm font-semibold tabular-nums">
+                    {formatInrPer10g(row.value)}
                   </div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+                  {row.changeAbs !== null && row.changePct !== null && (
+                    <div
+                      className={cn(
+                        "font-mono text-xs tabular-nums",
+                        row.changeAbs >= 0
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-destructive"
+                      )}
+                    >
+                      {formatSignedInrPer10g(row.changeAbs)}{" "}
+                      {formatPercent(row.changePct)}
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <p className="px-1 text-xs leading-relaxed text-muted-foreground">
