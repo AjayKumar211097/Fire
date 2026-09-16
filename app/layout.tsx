@@ -14,14 +14,14 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Fire Budget Tracker",
-  description: "Track budgets and spending with an installable mobile-friendly app.",
-  applicationName: "Fire Budget Tracker",
+  title: "Fire — Gold Rate",
+  description: "Hyderabad gold rates with 5-day, 5-month and 5-year history.",
+  applicationName: "Fire — Gold Rate",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Fire Budget",
+    title: "Gold Rate",
   },
   icons: {
     icon: [
@@ -52,7 +52,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", figtree.variable)}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        figtree.variable
+      )}
     >
       <body>
         <ThemeProvider>

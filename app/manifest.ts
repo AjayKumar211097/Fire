@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Fire Budget Tracker",
-    short_name: "Fire Budget",
-    description: "Installable budget tracker for quick spending updates on your phone.",
+    name: "Fire — Gold Rate",
+    short_name: "Gold Rate",
+    description: "Hyderabad gold rates with 5-day, 5-month and 5-year history.",
     start_url: "/",
     scope: "/",
     display: "standalone",

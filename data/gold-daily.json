@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "source": "Kalyan Jewellers retail — Hyderabad",
+  "sourceUrl": "https://store.kalyanjewellers.net/gold-rate/Hyderabad",
+  "currency": "INR",
+  "unit": "per_gram",
+  "timezone": "Asia/Kolkata",
+  "updatedAt": "2026-09-16T13:29:36.322Z",
+  "readings": [
+    { "date": "2026-09-15", "k22": 14040, "k24": 15316 },
+    { "date": "2026-09-16", "k22": 14065, "k24": 15344 }
+  ]
+}

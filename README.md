@@ -1,179 +1,68 @@
-# FIRE Wealth Tracker
+# Fire — Gold Rate
 
-A Next.js application for calculating and maintaining FIRE goals while tracking personal wealth across assets such as gold, equity, fixed deposits, and other savings or investments.
+A single-purpose PWA that shows the **retail gold rate in Hyderabad** and how it has moved:
+the last 5 days, the last 5 months, and the last 5 years. Installable on a phone.
 
-## Overview
+It does one thing. There is no portfolio, no purchase tracking, no login, no database.
 
-This app is built for users who want to track how much they have invested, how their assets are performing, and how those investments contribute toward financial independence.
+## How it works
 
-The focus is on:
+Rates come from [Kalyan Jewellers' Hyderabad page](https://store.kalyanjewellers.net/gold-rate/Hyderabad),
+which publishes 22K and 24K per-gram retail prices. A GitHub Action runs once a day, reads
+that page, and commits one new reading to `data/gold-daily.json`. Vercel redeploys on the
+commit, so the installed app picks the new rate up.
 
-- recording purchases of investment assets
-- tracking removals or sales from holdings
-- measuring invested capital by asset type
-- estimating current profit or loss
-- monitoring total wealth growth over time
-- supporting FIRE planning with real portfolio data
+Because no free API serves Hyderabad *retail* rates historically, the app builds its own
+series one day at a time. Monthly and yearly figures are averaged from those daily
+readings — and until enough have accumulated, they fall back to researched estimates in
+`data/gold-seed.json`, which the UI labels `est.`
 
-## Key Product Rules
+```
+data/gold-daily.json   measured readings, one per day, written by the daily job
+data/gold-seed.json    researched monthly/yearly averages, hand-curated, never automated
+lib/gold/              types, data access, period averaging, formatting
+components/            SegmentedControl (tabs + karat), GoldHistory (the whole UI)
+app/page.tsx           Server Component — computes every row, ships no history to the client
+scripts/               the daily updater
+```
 
-- The system stores and tracks the **buying price** of assets.
-- Selling price is not the primary value for portfolio tracking.
-- The main goal is to understand:
-  - how much money was invested
-  - what the current value is
-  - how much profit or loss has been made
-- Users should be able to add and remove holdings while preserving a clear investment history.
+### Averaging
 
-## Core Features
+A month or year uses its own daily readings when they cover at least half the days elapsed
+in that period; otherwise it uses the seeded estimate. Measured and estimated values are
+never blended, and every row says which it is.
 
-### FIRE Planning
-
-- FIRE number calculator
-- annual expense tracking
-- savings rate tracking
-- net worth growth tracking
-- retirement target milestones
-- financial independence progress dashboard
-
-### Wealth Tracking
-
-- add purchases for gold, equity, FDs, and other assets
-- record quantity, purchase date, and buying price
-- remove or sell holdings from the portfolio
-- categorize investments by asset class
-- track total invested amount
-- view current portfolio value
-- calculate unrealized profit and loss
-- calculate overall portfolio growth
-
-### Dashboard
-
-- portfolio summary
-- total investment vs current value
-- asset allocation breakdown
-- gain/loss by asset type
-- timeline of purchases and removals
-- responsive UI for desktop and mobile
-
-## Supported Asset Types
-
-Examples of assets this app can support:
-
-- gold
-- equity or stocks
-- fixed deposits
-- mutual funds
-- ETFs
-- savings instruments
-- bonds
-- custom investments
-
-## Tech Stack
-
-- [Next.js](https://nextjs.org/) for the application framework
-- React for UI development
-- TypeScript for type safety
-- a database layer such as PostgreSQL, MySQL, SQLite, or Supabase
-- optional market data integrations for current asset valuation
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm, yarn, pnpm, or bun
-
-### Install Dependencies
+## Development
 
 ```bash
 npm install
-```
-
-### Start Development Server
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in the browser.
-
-### Production Build
+Open [http://localhost:3000](http://localhost:3000). Press **`D`** to toggle dark mode.
 
 ```bash
-npm run build
-npm start
+npm run build       # production build
+npm run lint        # ESLint
+npm run typecheck   # tsc --noEmit
+npm run format      # Prettier
 ```
 
-## Suggested Project Structure
-
-```text
-app/
-  dashboard/
-  fire/
-  portfolio/
-  transactions/
-  api/
-components/
-lib/
-services/
-types/
-public/
-```
-
-## Example Data Model
-
-Each transaction may contain:
-
-- asset name
-- asset type
-- quantity
-- buying price
-- purchase date
-- current estimated value
-- notes
-
-This supports calculations such as:
-
-- total invested capital
-- current total value
-- gain or loss amount
-- gain or loss percentage
-
-## Environment Variables
-
-If this app uses a database or external pricing APIs, create a `.env.local` file:
-
-```env
-NEXT_PUBLIC_APP_NAME=FIRE Wealth Tracker
-DATABASE_URL=your_database_connection_string
-```
-
-Add additional variables only as required by your chosen stack.
-
-## Typical Scripts
+### Updating the rate by hand
 
 ```bash
-npm run dev
-npm run build
-npm start
-npm run lint
+npm run update-price
 ```
 
-## Roadmap Ideas
+Add `--dry-run` to parse and validate without writing. The script is idempotent — running
+it twice in a day changes nothing — and it refuses to write anything that fails its sanity
+checks, so a broken upstream page fails loudly rather than corrupting the series.
 
-- authentication and user accounts
-- recurring investment entries
-- historical portfolio charts
-- import/export of transactions
-- asset-wise profit and loss reports
-- dashboards for net worth and FIRE progress
-- alerts for target milestones
+```bash
+node scripts/update-gold-rate.mjs --dry-run
+```
 
 ## Disclaimer
 
-This application is intended for personal tracking and planning. It should not be considered financial or investment advice.
-
-## License
-
-Choose a license such as MIT if the project will be shared publicly.
+Rates shown are the metal rate only. They exclude making charges, GST and hallmarking, and
+are not investment advice.
