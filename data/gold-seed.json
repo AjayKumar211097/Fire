@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "note": "Approximate averages for periods that predate daily collection. These are researched estimates, not measured readings, and the UI labels them 'est.'. Monthly 22K figures are Hyderabad averages from BankBazaar's 'Historical Gold Price in Hyderabad' table, except Aug 2026 which comes from Kalyan's own last_month figure. Yearly 24K figures are BankBazaar's India-wide annual averages (24K per 10g); Hyderabad tracks the national rate within roughly half a percent. Throughout, the other karat is derived at the 22/24 purity ratio, which is exactly how this source prices the two.",
+  "monthly": [
+    { "month": "2026-01", "k22": 15020, "k24": 16385, "source": "bankbazaar-hyderabad" },
+    { "month": "2026-02", "k22": 14848, "k24": 16198, "source": "bankbazaar-hyderabad" },
+    { "month": "2026-03", "k22": 14936, "k24": 16294, "source": "bankbazaar-hyderabad" },
+    { "month": "2026-04", "k22": 14970, "k24": 16331, "source": "bankbazaar-hyderabad" },
+    { "month": "2026-05", "k22": 14007, "k24": 15281, "source": "bankbazaar-hyderabad" },
+    { "month": "2026-06", "k22": 14144, "k24": 15430, "source": "bankbazaar-hyderabad" },
+    { "month": "2026-07", "k22": 13741, "k24": 14990, "source": "bankbazaar-hyderabad" },
+    { "month": "2026-08", "k22": 14270, "k24": 15567, "source": "kalyan-last-month" }
+  ],
+  "yearly": [
+    { "year": 2021, "k22": 4466, "k24": 4872, "source": "bankbazaar-india" },
+    { "year": 2022, "k22": 4828, "k24": 5267, "source": "bankbazaar-india" },
+    { "year": 2023, "k22": 5989, "k24": 6533, "source": "bankbazaar-india" },
+    { "year": 2024, "k22": 7142, "k24": 7791, "source": "bankbazaar-india" },
+    { "year": 2025, "k22": 9521, "k24": 10387, "source": "bankbazaar-india" },
+    { "year": 2026, "k22": 14392, "k24": 15700, "source": "bankbazaar-india" }
+  ]
+}

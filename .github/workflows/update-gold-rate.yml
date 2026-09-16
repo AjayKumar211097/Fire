@@ -1,0 +1,39 @@
+name: Update gold rate
+
+on:
+  schedule:
+    # 04:30 UTC = 10:00 IST, after the morning rate is published.
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-gold-rate
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch today's Hyderabad rate
+        run: npm run update-price
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/gold-daily.json
+          if git diff --staged --quiet; then
+            echo "No change — nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore(data): Hyderabad gold rate $(TZ=Asia/Kolkata date +%F)"
+          git push
