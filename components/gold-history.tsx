@@ -36,7 +36,7 @@ export function GoldHistory({
   previous: { k22: number; k24: number } | null
   source: string
 }) {
-  const [karat, setKarat] = useState<Karat>(22)
+  const [karat, setKarat] = useState<Karat>(24)
   const [tab, setTab] = useState<TabKey>("days")
 
   // The portfolio feature this app used to have is gone; clear its leftover key so it
