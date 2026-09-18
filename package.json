@@ -10,7 +10,8 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "update-price": "node scripts/update-gold-rate.mjs"
+    "update-gold": "node scripts/update-gold-rate.mjs",
+    "update-silver": "node scripts/update-silver-rate.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

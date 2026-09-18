@@ -3,15 +3,8 @@ import {
   formatMonthLabel,
   formatYearLabel,
   istToday,
-} from "@/lib/gold/format"
-import type {
-  DailyReading,
-  Karat,
-  PeriodBasis,
-  PricePoint,
-  SeedMonth,
-  SeedYear,
-} from "@/lib/gold/types"
+} from "@/lib/metals/format"
+import type { PeriodBasis, PricePoint } from "@/lib/metals/types"
 
 /**
  * A period uses its own daily readings when they cover at least this fraction of the
@@ -20,8 +13,22 @@ import type {
  */
 export const COVERAGE_THRESHOLD = 0.5
 
-function priceOf(r: Pick<DailyReading, "k22" | "k24">, karat: Karat): number {
-  return karat === 22 ? r.k22 : r.k24
+/**
+ * The period math is metal-agnostic: callers pass a selector that pulls the price out of
+ * a row, rather than a karat. Daily and seed rows must therefore name their price field
+ * the same way, which is what lets one selector serve both — `(row: R | S) => number`
+ * makes TypeScript enforce that at the call site.
+ */
+export type Reading = { date: string }
+export type MonthSeed = { month: string }
+export type YearSeed = { year: number }
+
+export type PeriodOptions = {
+  count?: number
+  today?: string
+  /** Gold is whole rupees per gram; silver keeps 2 dp, since it is derived from a per-kg
+   * figure and rounding to the rupee would quantise averages by ₹1,000/kg. */
+  round?: (value: number) => number
 }
 
 function utcDays(isoDate: string): number {
@@ -29,8 +36,8 @@ function utcDays(isoDate: string): number {
   return Date.UTC(y, m - 1, d) / 86_400_000
 }
 
-function mean(values: number[]): number {
-  return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
+function mean(values: number[], round: (value: number) => number): number {
+  return round(values.reduce((sum, v) => sum + v, 0) / values.length)
 }
 
 function plural(n: number): string {
@@ -65,9 +72,9 @@ function trimAndReverse(ascending: PricePoint[], count: number): PricePoint[] {
   return visible.reverse()
 }
 
-export function last5Days(
-  daily: DailyReading[],
-  karat: Karat,
+export function last5Days<R extends Reading>(
+  daily: readonly R[],
+  priceOf: (row: R) => number,
   count = 5
 ): PricePoint[] {
   const window = daily.slice(-(count + 1))
@@ -75,7 +82,7 @@ export function last5Days(
     key: reading.date,
     label: formatDayLabel(reading.date),
     sublabel: null,
-    value: priceOf(reading, karat),
+    value: priceOf(reading),
     basis: "daily" as PeriodBasis,
     sampleCount: 1,
     changeAbs: null,
@@ -126,12 +133,13 @@ function elapsedDays(
 
 type SeedLookup = (key: string) => number | null
 
-function buildPeriodPoints(
+function buildPeriodPoints<R extends Reading>(
   keys: string[],
   kind: "month" | "year",
-  daily: DailyReading[],
+  daily: readonly R[],
   seedFor: SeedLookup,
-  karat: Karat,
+  priceOf: (row: R) => number,
+  round: (value: number) => number,
   today: string,
   label: (key: string) => string
 ): PricePoint[] {
@@ -153,7 +161,10 @@ function buildPeriodPoints(
       label: label(key),
       sublabel: useDaily ? plural(n) : "estimated",
       value: useDaily
-        ? mean(inPeriod.map((r) => priceOf(r, karat)))
+        ? mean(
+            inPeriod.map((r) => priceOf(r)),
+            round
+          )
         : (seeded as number),
       basis: useDaily ? "daily" : "seed",
       sampleCount: useDaily ? n : 0,
@@ -165,12 +176,11 @@ function buildPeriodPoints(
   return points
 }
 
-export function monthlyAverages(
-  daily: DailyReading[],
-  seed: SeedMonth[],
-  karat: Karat,
-  count = 5,
-  today: string = istToday()
+export function monthlyAverages<R extends Reading, S extends MonthSeed>(
+  daily: readonly R[],
+  seed: readonly S[],
+  priceOf: (row: R | S) => number,
+  { count = 5, today = istToday(), round = Math.round }: PeriodOptions = {}
 ): PricePoint[] {
   const byMonth = new Map(seed.map((s) => [s.month, s]))
   const points = buildPeriodPoints(
@@ -179,21 +189,21 @@ export function monthlyAverages(
     daily,
     (key) => {
       const hit = byMonth.get(key)
-      return hit ? priceOf(hit, karat) : null
+      return hit ? priceOf(hit) : null
     },
-    karat,
+    priceOf,
+    round,
     today,
     formatMonthLabel
   )
   return trimAndReverse(points, count)
 }
 
-export function yearlyAverages(
-  daily: DailyReading[],
-  seed: SeedYear[],
-  karat: Karat,
-  count = 5,
-  today: string = istToday()
+export function yearlyAverages<R extends Reading, S extends YearSeed>(
+  daily: readonly R[],
+  seed: readonly S[],
+  priceOf: (row: R | S) => number,
+  { count = 5, today = istToday(), round = Math.round }: PeriodOptions = {}
 ): PricePoint[] {
   const byYear = new Map(seed.map((s) => [String(s.year), s]))
   const points = buildPeriodPoints(
@@ -202,9 +212,10 @@ export function yearlyAverages(
     daily,
     (key) => {
       const hit = byYear.get(key)
-      return hit ? priceOf(hit, karat) : null
+      return hit ? priceOf(hit) : null
     },
-    karat,
+    priceOf,
+    round,
     today,
     formatYearLabel
   )

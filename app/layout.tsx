@@ -14,14 +14,15 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Fire — Gold Rate",
-  description: "Hyderabad gold rates with 5-day, 5-month and 5-year history.",
-  applicationName: "Fire — Gold Rate",
+  title: "Fire — Gold & Silver Rates",
+  description:
+    "Hyderabad gold and silver rates with 5-day, 5-month and 5-year history.",
+  applicationName: "Fire — Gold & Silver Rates",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Gold Rate",
+    title: "Fire",
   },
   icons: {
     icon: [

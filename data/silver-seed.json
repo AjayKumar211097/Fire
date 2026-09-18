@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "note": "Approximate averages for periods that predate daily collection. Monthly figures are the midpoint of GoodReturns' published monthly high and low for Hyderabad silver, converted from ₹/kg to ₹/gram. Yearly 2021-2025 are Motilal Oswal's indicative India-wide annual averages, likewise converted. 2026 is deliberately NOT their ₹3,30,000/kg 'till date' figure, which contradicts every Hyderabad reading we hold (measured ₹2.55L, no month above ₹2.93L); it is the mean of the seven monthly midpoints below. 2026 has far too little daily coverage to override this seed, so it renders all year.",
+  "monthly": [
+    { "month": "2026-03", "price": 285, "source": "goodreturns-hyderabad-monthly" },
+    { "month": "2026-04", "price": 267.5, "source": "goodreturns-hyderabad-monthly" },
+    { "month": "2026-05", "price": 292.5, "source": "goodreturns-hyderabad-monthly" },
+    { "month": "2026-06", "price": 260, "source": "goodreturns-hyderabad-monthly" },
+    { "month": "2026-07", "price": 247.5, "source": "goodreturns-hyderabad-monthly" },
+    { "month": "2026-08", "price": 255, "source": "goodreturns-hyderabad-monthly" },
+    { "month": "2026-09", "price": 252.5, "source": "goodreturns-hyderabad-monthly" }
+  ],
+  "yearly": [
+    { "year": 2021, "price": 62.57, "source": "motilaloswal-india" },
+    { "year": 2022, "price": 55.1, "source": "motilaloswal-india" },
+    { "year": 2023, "price": 78.6, "source": "motilaloswal-india" },
+    { "year": 2024, "price": 95.7, "source": "motilaloswal-india" },
+    { "year": 2025, "price": 262, "source": "motilaloswal-india" },
+    { "year": 2026, "price": 265.71, "source": "derived-from-monthly-midpoints" }
+  ]
+}

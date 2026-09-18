@@ -25,26 +25,46 @@ export function formatInr(value: number): string {
   return inr.format(value)
 }
 
+// Silver is stored per gram but derived from a per-kg figure, so it can be fractional.
+// `inr` would round 252.5 to "₹253/g" beside a headline of ₹2,52,500/kg — visibly
+// inconsistent arithmetic on one line. A zero minimum keeps gold's integers unchanged.
+const inrPrecise = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+})
+
 export function formatInrPerGram(value: number): string {
-  return `${inr.format(value)}/g`
+  return `${inrPrecise.format(value)}/g`
 }
 
-// Rates are stored per gram, the unit the source publishes. Everything on screen is shown
-// per 10 g, which is how gold is actually quoted and bought here.
-export const GRAMS_PER_DISPLAY_UNIT = 10
+// Rates are stored per gram for every metal, the unit the sources publish. The display
+// unit is applied exactly once, here — never multiply before the formatter, or
+// percentages and averages drift.
+export type DisplayUnit = { grams: number; label: string }
 
-/** Takes a per-gram value, renders the per-10g price. */
-export function formatInrPer10g(perGram: number): string {
-  return inr.format(perGram * GRAMS_PER_DISPLAY_UNIT)
+/** Gold is quoted and bought per 10 g here. */
+export const PER_10_G: DisplayUnit = { grams: 10, label: "per 10 g" }
+
+/** Silver is quoted per kilogram. */
+export const PER_KG: DisplayUnit = { grams: 1000, label: "per 1 kg" }
+
+/** Takes a per-gram value, renders the price in `unit`. */
+export function formatInrPerUnit(perGram: number, unit: DisplayUnit): string {
+  return inr.format(perGram * unit.grams)
 }
 
 export function formatSignedInr(value: number): string {
   return `${value >= 0 ? "+" : "−"}${inr.format(Math.abs(value))}`
 }
 
-/** Takes a per-gram delta, renders the signed per-10g change. */
-export function formatSignedInrPer10g(perGramDelta: number): string {
-  return formatSignedInr(perGramDelta * GRAMS_PER_DISPLAY_UNIT)
+/** Takes a per-gram delta, renders the signed change in `unit`. */
+export function formatSignedInrPerUnit(
+  perGramDelta: number,
+  unit: DisplayUnit
+): string {
+  return formatSignedInr(perGramDelta * unit.grams)
 }
 
 export function formatPercent(value: number): string {
