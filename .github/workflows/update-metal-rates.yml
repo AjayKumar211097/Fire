@@ -1,0 +1,58 @@
+name: Update metal rates
+
+on:
+  schedule:
+    # 04:30 UTC = 10:00 IST, after the morning rates are published.
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-metal-rates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Both sources are scraped, and either can break independently. continue-on-error
+      # keeps one broken source from costing us the other metal's reading; the gate at the
+      # end is what stops that turning into a permanently green job.
+      - id: gold
+        name: Fetch today's Hyderabad gold rate
+        continue-on-error: true
+        run: npm run update-gold
+
+      - id: silver
+        name: Fetch today's Hyderabad silver rate
+        continue-on-error: true
+        run: npm run update-silver
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Every data file a scraper can write must be staged here. A file missing from
+          # this line is written, ignored, and thrown away with the runner — silently, and
+          # with a green check.
+          git add data/gold-daily.json data/silver-daily.json
+          if git diff --staged --quiet; then
+            echo "No change — nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore(data): Hyderabad metal rates $(TZ=Asia/Kolkata date +%F)"
+          git push
+
+      - name: Fail if a source broke
+        if: steps.gold.outcome == 'failure' || steps.silver.outcome == 'failure'
+        run: |
+          echo "gold=${{ steps.gold.outcome }} silver=${{ steps.silver.outcome }}"
+          exit 1

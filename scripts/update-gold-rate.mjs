@@ -7,16 +7,16 @@
  * parse and validate without writing.
  */
 
-import { readFileSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+
+import { istDate } from "./lib/dates.mjs"
+import { fetchPage } from "./lib/http.mjs"
+import { readDataFile, upsert, writeIfChanged } from "./lib/json-file.mjs"
 
 // Overridable so the failure path can be exercised without editing the script.
 const RATE_URL =
   process.env.GOLD_RATE_URL ?? "https://store.kalyanjewellers.net/gold-rate/Hyderabad/en"
-const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-
 const DATA_PATH = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -25,33 +25,6 @@ const DATA_PATH = resolve(
 )
 
 const dryRun = process.argv.includes("--dry-run")
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-
-/** Today in Asia/Kolkata as YYYY-MM-DD — never the runner's UTC date. */
-function istDate(offsetDays = 0) {
-  const now = new Date(Date.now() + offsetDays * 86_400_000)
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(now)
-}
-
-async function fetchPage() {
-  const delays = [0, 2000, 5000]
-  let lastError
-  for (const delay of delays) {
-    if (delay) await sleep(delay)
-    try {
-      const res = await fetch(RATE_URL, {
-        headers: { "user-agent": USER_AGENT, "accept-language": "en-IN,en;q=0.9" },
-        redirect: "follow",
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return await res.text()
-    } catch (err) {
-      lastError = err
-    }
-  }
-  throw new Error(`Could not fetch ${RATE_URL}: ${lastError?.message ?? "unknown error"}`)
-}
 
 function parseRates(html) {
   // Next escapes "<" as < inside the payload, so "</script>" cannot appear in it and
@@ -100,32 +73,11 @@ function validate(rate, label, previous) {
   }
 }
 
-/**
- * JSON.stringify(_, 2) spreads each reading over four lines, which after a few years
- * makes the file thousands of lines long and every daily diff noisy. Readings are one
- * line each instead.
- */
-function serialize(file) {
-  const { readings, ...head } = file
-  const headJson = JSON.stringify(head, null, 2).slice(0, -2).trimEnd()
-  const rows = readings.map(
-    (r) => `    { "date": "${r.date}", "k22": ${r.k22}, "k24": ${r.k24} }`,
-  )
-  return `${headJson},\n  "readings": [\n${rows.join(",\n")}\n  ]\n}\n`
-}
-
-function upsert(readings, date, rate) {
-  const next = readings.filter((r) => r.date !== date)
-  next.push({ date, k22: rate.k22, k24: rate.k24 })
-  next.sort((a, b) => a.date.localeCompare(b.date))
-  return next
-}
-
 async function main() {
-  const file = JSON.parse(readFileSync(DATA_PATH, "utf8"))
+  const file = readDataFile(DATA_PATH)
   const previous = file.readings.at(-1) ?? null
 
-  const html = await fetchPage()
+  const html = await fetchPage(RATE_URL)
   const { today, yesterday } = parseRates(html)
 
   validate(today, "today", previous)
@@ -157,20 +109,7 @@ async function main() {
     return
   }
 
-  // Only touch updatedAt when a reading actually changed, so re-running the job on the
-  // same day is a genuine no-op and the workflow's "commit if changed" guard means
-  // something.
-  const unchanged = JSON.stringify(readings) === JSON.stringify(file.readings)
-  if (unchanged) {
-    console.log("no reading changed — file left untouched")
-    return
-  }
-
-  writeFileSync(
-    DATA_PATH,
-    serialize({ ...file, updatedAt: new Date().toISOString(), readings }),
-  )
-  console.log(`wrote ${DATA_PATH} (${readings.length} readings)`)
+  writeIfChanged(DATA_PATH, file, readings, ["k22", "k24"])
 }
 
 main().catch((err) => {
