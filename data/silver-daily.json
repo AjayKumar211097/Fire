@@ -6,7 +6,7 @@
   "unit": "per_gram",
   "timezone": "Asia/Kolkata",
   "note": "Values are per gram, derived from the source's per-kilogram figure (÷1000); the UI displays per 1 kg. The source quotes silver in ₹5,000/kg steps, so day-to-day changes are coarse and often zero. The daily job backfills any missing day from the source's own 10-day table, so a skipped run self-heals for up to ten days.",
-  "updatedAt": "2026-11-09T13:11:12.644Z",
+  "updatedAt": "2026-11-10T12:51:39.223Z",
   "readings": [
     { "date": "2026-09-09", "price": 255 },
     { "date": "2026-09-10", "price": 255 },
@@ -69,6 +69,7 @@
     { "date": "2026-11-06", "price": 205 },
     { "date": "2026-11-07", "price": 205 },
     { "date": "2026-11-08", "price": 205 },
-    { "date": "2026-11-09", "price": 205 }
+    { "date": "2026-11-09", "price": 205 },
+    { "date": "2026-11-10", "price": 205 }
   ]
 }
