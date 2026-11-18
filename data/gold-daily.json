@@ -6,7 +6,7 @@
   "unit": "per_gram",
   "timezone": "Asia/Kolkata",
   "note": "Values are per gram, the unit the source publishes; the UI displays per 10 g. Readings from 2026-09-15 onward come from the daily job. 2026-09-07..14 were backfilled from GoodReturns' Hyderabad 10-day table, which quotes the same city-wide rate — it agrees with Kalyan to the rupee on both overlapping days. No source publishes Hyderabad daily history beyond ~10 days.",
-  "updatedAt": "2026-11-17T13:43:03.316Z",
+  "updatedAt": "2026-11-18T13:17:28.405Z",
   "readings": [
     { "date": "2026-09-07", "k22": 14130, "k24": 15415 },
     { "date": "2026-09-08", "k22": 14240, "k24": 15535 },
@@ -79,6 +79,7 @@
     { "date": "2026-11-14", "k22": 12615, "k24": 13762 },
     { "date": "2026-11-15", "k22": 12615, "k24": 13762 },
     { "date": "2026-11-16", "k22": 12540, "k24": 13680 },
-    { "date": "2026-11-17", "k22": 12470, "k24": 13604 }
+    { "date": "2026-11-17", "k22": 12470, "k24": 13604 },
+    { "date": "2026-11-18", "k22": 12215, "k24": 13325 }
   ]
 }
